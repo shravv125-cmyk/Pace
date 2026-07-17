@@ -142,20 +142,16 @@ python manage.py runserver
 ---
 
 ## 📸 Screenshots
-
-<img width="1918" height="910" alt="image" src="https://github.com/user-attachments/assets/f767f9c3-d5dd-44b8-aa55-c36c076adac4" />
-<img width="1918" height="913" alt="image" src="https://github.com/user-attachments/assets/1d1c4470-146a-4b9b-8686-e7ee3ae954a8" />
-<img width="1918" height="912" alt="image" src="https://github.com/user-attachments/assets/8afebcb3-d91c-48cc-aa0a-990a5ccaa6c5" />
-<img width="1918" height="912" alt="image" src="https://github.com/user-attachments/assets/6a959240-128f-4b52-a4d2-97978f14747f" />
-
 Example
-
 - Dashboard
+  <img width="1918" height="913" alt="image" src="https://github.com/user-attachments/assets/1d1c4470-146a-4b9b-8686-e7ee3ae954a8" />
 - Subjects Page
-- PDF Upload
+  <img width="1918" height="912" alt="image" src="https://github.com/user-attachments/assets/8afebcb3-d91c-48cc-aa0a-990a5ccaa6c5" />
 - AI Generated Modules
+  <img width="1918" height="912" alt="image" src="https://github.com/user-attachments/assets/6a959240-128f-4b52-a4d2-97978f14747f" />
 - Study Progress
-
+  <img width="1918" height="912" alt="image" src="https://github.com/user-attachments/assets/bbba2234-f053-4a53-8b0c-3ae37954cab4" />
+  
 ---
 
 ## ✨ How it Works
