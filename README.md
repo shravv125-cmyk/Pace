@@ -1,4 +1,4 @@
-# 📚 Pace AI – AI Powered Study Planner
+# 📚 Pace  – AI Powered Study Planner
 
 Pace AI is an intelligent study planning web application built with Django and Generative AI. It helps students organize subjects, upload study material, automatically generate learning modules, create study tasks, and track progress.
 
