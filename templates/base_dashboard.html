@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Pace AI{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-main: #f4f5fa;
+            --sidebar-left-bg: #e0e1ed;
+            --sidebar-right-bg: #ffffff;
+            --white: #ffffff;
+            --text-main: #18163b;
+            --text-muted: #6e6b94;
+            --primary: #9243df;
+            --primary-hover: #7b2cbf;
+            --primary-light: #f1e7fe;
+            --border: rgba(218, 222, 237, 0.8);
+            --shadow-sm: 0 2px 8px rgba(146, 67, 223, 0.04);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-main); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        .top-navbar { height: 64px; background-color: var(--white); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; padding: 0 2rem; z-index: 10; flex-shrink: 0; }
+        .brand-title { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.04em; }
+        .brand-title span { color: var(--primary); }
+        .top-nav-right { display: flex; align-items: center; gap: 1.5rem; }
+        .search-container { position: relative; }
+        .search-input { background-color: var(--bg-main); border: 1px solid transparent; padding: 0.55rem 1rem 0.55rem 2.2rem; border-radius: 20px; width: 280px; font-family: inherit; font-size: 0.85rem; outline: none; }
+        .search-icon { position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); font-size: 0.85rem; color: var(--text-muted); }
+        .user-profile-trigger { width: 36px; height: 36px; border-radius: 50%; background-color: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 600; }
+
+        /* ✨ Fixed Layout: Changed to 2 columns (Sidebar + Main Content Area) */
+        .app-body { display: grid; grid-template-columns: 260px 1fr; flex: 1; overflow: hidden; }
+        .sidebar-left { background-color: var(--sidebar-left-bg); border-right: 1px solid var(--border); padding: 1.5rem 1rem; display: flex; flex-direction: column; gap: 0.35rem; overflow-y: auto; }
+        
+        .nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; color: var(--text-muted); text-decoration: none; font-size: 0.9rem; font-weight: 500; border-radius: 8px; }
+        .nav-item:hover { background-color: rgba(146, 67, 223, 0.05); color: var(--primary); }
+        .nav-item.active { background-color: var(--primary); color: var(--white); font-weight: 600; }
+
+        .center-workspace { padding: 2rem; overflow-y: auto; display: flex; flex-direction: column; gap: 2rem; }
+        .dashboard-grid-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+        .dashboard-card, .heatmap-card { background-color: var(--white); border-radius: 14px; padding: 1.5rem; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+        .card-title { font-size: 1rem; font-weight: 600; margin-bottom: 1.25rem; color: var(--text-main); }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <header class="top-navbar">
+        <div class="brand-title"><span>●</span> Pace AI</div>
+        <div class="top-nav-right">
+            <div class="search-container">
+                <span class="search-icon">🔍</span>
+                <input type="text" placeholder="Search syllabus, notes, history..." class="search-input">
+            </div>
+            <div class="user-profile-trigger">
+                {{ user.username|slice:":1"|upper }}
+            </div>
+        </div>
+    </header>
+
+    <div class="app-body">
+        
+        <aside class="sidebar-left">
+            <a href="{% url 'dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">Dashboard</a>
+            <a href="{% url 'subjects' %}" class="nav-item {% if request.resolver_match.url_name == 'subjects' %}active{% endif %}">Subjects</a>
+            <a href="{% url 'study_log' %}" class="nav-item {% if request.resolver_match.url_name == 'study_log' %}active{% endif %}">Study log</a>
+            <a href="#" class="nav-item" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                Logout
+            </a>
+
+            <form id="logout-form" action="{% url 'logout' %}" method="POST" style="display: none;">
+                {% csrf_token %}
+            </form>
+        </aside>
+
+        <main class="center-workspace">
+            {% block content %}
+            {% endblock %}
+        </main>
+
+    </div>
+
+    <script>
+    // Get Django CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+            const cookies = document.cookie.split(";");
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.startsWith(name + "=")) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    </script>
+
+</body>
+</html>

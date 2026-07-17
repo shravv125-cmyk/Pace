@@ -1,0 +1,65 @@
+{% extends 'base_dashboard.html' %}
+
+{% block title %}Study Log - Pace AI{% endblock %}
+
+{% block content %}
+<div style="background-color: #f8fafc; min-height: 100vh; padding: 2.5rem 2rem; color: #1e293b; font-family: system-ui, -apple-system, sans-serif;">
+    
+    {% if no_course %}
+    <div style="text-align: center; padding: 5rem 2rem;">
+        <h2 style="font-family: Georgia, serif; color: #0f172a;">No Active Course Found</h2>
+        <p style="color: #64748b;">Please add a course workspace to populate data tracking streams.</p>
+    </div>
+    {% else %}
+
+    <div style="margin-bottom: 2.5rem;">
+        <h1 style="font-family: Georgia, serif; font-size: 2.5rem; font-weight: 700; color: #0f172a; margin: 0;">Study log</h1>
+        <p style="color: #64748b; font-size: 1rem; margin-top: 0.5rem; margin-bottom: 0;">
+            A running record of what you covered in <strong>{{ subject.name }}</strong>, and where you flagged trouble.
+        </p>
+    </div>
+
+    <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02); display: flex; flex-direction: column; gap: 0.85rem;">
+        
+        {% for log in logs %}
+            <div style="display: grid; grid-template-columns: 120px 1fr auto; align-items: center; padding: 1.25rem 1rem; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; transition: background-color 0.2s;"
+                 onmouseover="this.style.backgroundColor='#f8fafc';" onmouseout="this.style.backgroundColor='#ffffff';">
+                
+                <div style="font-size: 0.9rem; color: #64748b; font-weight: 600; padding-left: 0.5rem;">
+                    {{ log.time_tag }}
+                </div>
+                
+                <div>
+                    <h4 style="font-size: 1.05rem; font-weight: 700; color: #0f172a; margin: 0;">
+                        {{ log.title }}
+                    </h4>
+                    <p style="font-size: 0.85rem; color: #64748b; margin-top: 0.25rem; margin-bottom: 0;">
+                        {{ log.meta }}
+                    </p>
+                </div>
+
+                <div style="padding-right: 0.5rem;">
+                    {% if log.is_review %}
+                        <span style="background-color: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; padding: 0.35rem 1rem; border-radius: 20px; font-size: 0.78rem; font-weight: 700; display: inline-block;">
+                            Review
+                        </span>
+                    {% else %}
+                        <span style="background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; padding: 0.35rem 1rem; border-radius: 20px; font-size: 0.78rem; font-weight: 700; display: inline-block;">
+                            Done
+                        </span>
+                    {% endif %}
+                </div>
+
+            </div>
+        {% empty %}
+            <div style="text-align: center; padding: 4rem; color: #64748b;">
+                <p style="font-size: 1rem; font-weight: 600; margin-bottom: 0.25rem;">No target milestones completed yet.</p>
+                <p style="font-size: 0.85rem; color: #94a3b8;">Check off task checkboxes inside your subject detail page to see execution streams populate here.</p>
+            </div>
+        {% endfor %}
+        
+    </div>
+
+    {% endif %}
+</div>
+{% endblock %}

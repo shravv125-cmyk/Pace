@@ -1,0 +1,550 @@
+{% comment %} {% extends 'base_dashboard.html' %}
+{% load planner_extras %}
+
+{% block title %}Calendar - Pace AI{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Hides global assistant sidebars to let calendar use full space if needed */
+    .top-nav-right + aside, 
+    #chat-sidebar, 
+    aside:nth-of-type(2),
+    [style*="Pace AI Assistant"] {
+        display: none !important;
+    }
+    .center-workspace {
+        grid-template-columns: 1fr !important;
+        width: 100% !important;
+    }
+    .calendar-day-cell:hover {
+        background-color: var(--bg-main) !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <div>
+        <h1 style="font-size: 1.6rem; font-weight: 700; margin-bottom: 0.25rem;">Milestone Schedule</h1>
+        <p style="font-size: 0.9rem; color: var(--text-muted);">Click any date grid box to append new execution parameters instantly.</p>
+    </div>
+    
+    <div style="display: flex; align-items: center; gap: 1rem; background: var(--white); padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+        <a href="{% url 'calendar' %}?year={{ prev_year }}&month={{ prev_month }}" style="text-decoration: none; color: var(--primary); font-weight: 700; font-size: 1.1rem;">←</a>
+        <span style="font-size: 1rem; font-weight: 600; color: var(--text-main); min-width: 120px; text-align: center;">
+            {{ month_name }} {{ year }}
+        </span>
+        <a href="{% url 'calendar' %}?year={{ next_year }}&month={{ next_month }}" style="text-decoration: none; color: var(--primary); font-weight: 700; font-size: 1.1rem;">→</a>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 3fr 1fr; gap: 1.5rem; align-items: start; width: 100%;">
+    
+    <div style="background: var(--white); border-radius: 14px; border: 1px solid var(--border); padding: 1.5rem; box-shadow: var(--shadow-sm);">
+        <div style="display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-weight: 600; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; padding-bottom: 1rem; border-bottom: 1px solid var(--border); margin-bottom: 0.5rem;">
+            <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            {% for week in month_days_matrix %}
+                <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem; min-height: 110px;">
+                    {% for day in week %}
+                        {% if day == 0 %}
+                            <div style="background-color: var(--bg-main); opacity: 0.3; border-radius: 8px; border: 1px dashed var(--border);"></div>
+                        {% else %}
+                            <div class="calendar-day-cell" data-date="{{ year }}-{{ month|stringformat:'02d' }}-{{ day|stringformat:'02d' }}"
+                                 style="background-color: var(--white); border: 1px solid {% if day == current_day %}var(--primary){% else %}var(--border){% endif %}; border-radius: 8px; padding: 0.5rem; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; transition: background 0.2s; position: relative;">
+                                
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; pointer-events: none;">
+                                    <span style="font-size: 0.9rem; font-weight: {% if day == current_day %}700{% else %}600{% endif %}; color: {% if day == current_day %}var(--primary){% else %}var(--text-main){% endif %}; background: {% if day == current_day %}var(--primary-light){% else %}transparent{% endif %}; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
+                                        {{ day }}
+                                    </span>
+                                </div>
+
+                                <div style="display: flex; flex-direction: column; gap: 0.25rem; flex-grow: 1; overflow-y: auto; max-height: 75px;">
+                                    {% if day in tasks_by_day %}
+                                        {% for task in tasks_by_day|dict_lookup:day %}
+                                            <div class="calendar-task-tag" 
+                                                 data-id="{{ task.id }}" 
+                                                 data-title="{{ task.title }}"
+                                                 data-subject="{% if task.module %}{{ task.module.subject.name }}{% else %}General{% endif %}"
+                                                 style="background-color: var(--primary-light); color: var(--primary); font-size: 0.72rem; font-weight: 500; padding: 0.2rem 0.4rem; border-radius: 4px; border-left: 3px solid var(--primary); Cake-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; position: relative; z-index: 10;">
+                                                {{ task.title }}
+                                            </div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div id="action-hub-sidebar" style="background: var(--white); border-radius: 14px; border: 1px solid var(--border); padding: 1.5rem; min-height: 410px; display: flex; flex-direction: column; justify-content: space-between; position: sticky; top: 2rem; box-shadow: var(--shadow-sm); box-sizing: border-box;">
+        
+        <div id="hub-empty-state" style="display: block; text-align: center; margin: auto 0; padding: 1rem;">
+            <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">📋</div>
+            <h4 style="font-size: 1rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.25rem;">Task Action Hub</h4>
+            <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">Select any milestone item on your schedule to finalize details or delete targets completely.</p>
+        </div>
+
+        <div id="hub-active-state" style="display: none; flex-direction: column; justify-content: space-between; height: 100%; flex-grow: 1;">
+            <div>
+                <span id="hub-task-module" style="background: var(--primary-light); color: var(--primary); font-size: 0.72rem; font-weight: 700; padding: 0.25rem 0.5rem; border-radius: 4px; display: inline-block; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">SUB NAME</span>
+                <h3 id="hub-task-title" style="font-size: 1.15rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem; line-height: 1.3;">Task Title</h3>
+                <p id="hub-task-date" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">📅 Date</p>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <button id="hub-btn-delete" style="width: 100%; background: #ef4444; color: var(--white); border: none; padding: 0.75rem; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.9rem; transition: background 0.2s;">
+                    🗑️ Delete Task
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="calendarModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index: 9999; justify-content: center; align-items: center;">
+    <div style="width: 100%; max-width: 420px; background: var(--white); padding: 1.5rem; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); border: 1px solid var(--border);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-main);">Schedule New Milestone</h3>
+            <span id="closeModalBtn" style="cursor: pointer; font-size: 1.2rem; color: var(--text-muted); font-weight: 600;">&times;</span>
+        </div>
+        
+        <form method="POST" action="{% url 'add_calendar_task' %}">
+            {% csrf_token %}
+            <input type="hidden" name="due_date" id="modalTargetDate">
+            
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.35rem;">Task Title</label>
+                <input type="text" name="title" required placeholder="e.g., Read section 2 pipeline docs" 
+                       style="width: 100%; padding: 0.6rem; border: 1px solid var(--border); border-radius: 6px; outline: none; font-size: 0.9rem; box-sizing: border-box; background: var(--white); color: var(--text-main);">
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.35rem;">Assign to Target Course Module</label>
+                <select name="module_id" required style="width: 100%; padding: 0.6rem; border: 1px solid var(--border); border-radius: 6px; outline: none; font-size: 0.9rem; background: var(--white); color: var(--text-main);">
+                    {% for mod in modules %}
+                        <option value="{{ mod.id }}">{{ mod.subject.name }} - {{ mod.title }}</option>
+                    {% empty %}
+                        <option value="" disabled>No modules compiled yet</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="submit" style="width: 100%; background: var(--primary); color: var(--white); border: none; padding: 0.7rem; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.9rem;">
+                Insert Milestone Deadline
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const modal = document.getElementById("calendarModal");
+    const closeBtn = document.getElementById("closeModalBtn");
+    const targetDateInput = document.getElementById("modalTargetDate");
+
+    const emptyState = document.getElementById("hub-empty-state");
+    const activeState = document.getElementById("hub-active-state");
+    const hubTitle = document.getElementById("hub-task-title");
+    const hubModule = document.getElementById("hub-task-module");
+    const hubDate = document.getElementById("hub-task-date");
+    const btnDelete = document.getElementById("hub-btn-delete");
+
+    let selectedTaskId = null;
+    let selectedTagElement = null;
+
+    // A. Intercept Grid Clicks to pop open creation modal
+    document.querySelectorAll(".calendar-day-cell").forEach(cell => {
+        cell.addEventListener("click", function(e) {
+            if (e.target.classList.contains("calendar-task-tag") || e.target.closest(".calendar-task-tag")) {
+                return; // Stop event if targeting an inner tag link instead of the day container
+            }
+            const selectedDate = this.getAttribute("data-date");
+            if (targetDateInput) targetDateInput.value = selectedDate;
+            if (modal) modal.style.display = "flex";
+        });
+    });
+
+    if (closeBtn) closeBtn.addEventListener("click", () => modal.style.display = "none");
+    window.addEventListener("click", (e) => { if (e.target === modal) modal.style.display = "none"; });
+
+    // B. Handle Tag Selection Syncing to the Right Sidebar Panel
+    function initActionHubEngine() {
+        document.querySelectorAll(".calendar-task-tag").forEach(tag => {
+            tag.addEventListener("click", function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                selectedTagElement = this;
+                selectedTaskId = this.getAttribute("data-id");
+
+                const title = this.getAttribute("data-title") || this.textContent.trim();
+                const subjectName = this.getAttribute("data-subject") || "GENERAL";
+                
+                const parentCell = this.closest(".calendar-day-cell");
+                let formattedDate = "Target Undefined";
+                
+                if (parentCell && parentCell.getAttribute("data-date")) {
+                    const parsedDate = new Date(parentCell.getAttribute("data-date"));
+                    if (!isNaN(parsedDate)) {
+                        formattedDate = parsedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                    }
+                }
+
+                if (hubTitle) hubTitle.textContent = title;
+                if (hubModule) hubModule.textContent = subjectName;
+                if (hubDate) hubDate.textContent = `📅 Due on ${formattedDate}`;
+
+                if (emptyState) emptyState.style.display = "none";
+                if (activeState) activeState.style.display = "flex";
+            });
+        });
+    }
+
+    initActionHubEngine();
+
+    // C. Handle Sidebar Task Deletion Via AJAX
+    if (btnDelete) {
+        btnDelete.addEventListener("click", function() {
+            if (!selectedTaskId) return;
+            if (confirm("Permanently delete this scheduled task milestone?")) {
+                this.style.opacity = "0.5";
+                this.textContent = "Deleting...";
+
+                fetch(`/planner/delete-task/${selectedTaskId}/`, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": "{{ csrf_token }}",
+                        "Content-Type": "application/json"
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        if (selectedTagElement) selectedTagElement.remove();
+                        resetHubToDefault();
+                    } else {
+                        alert("Error: " + data.message);
+                        resetHubToDefault();
+                    }
+                })
+                .catch(() => {
+                    alert("An error occurred during task deletion processing.");
+                    resetHubToDefault();
+                });
+            }
+        });
+    }
+
+    function resetHubToDefault() {
+        selectedTaskId = null;
+        selectedTagElement = null;
+        if (activeState) activeState.style.display = "none";
+        if (emptyState) emptyState.style.display = "block";
+        if (btnDelete) { btnDelete.style.opacity = "1"; btnDelete.textContent = "🗑️ Delete Task"; }
+    }
+});
+</script>
+{% endblock %} {% endcomment %}
+{% comment %} 
+
+
+
+from datetime import date
+import calendar
+from collections import defaultdict
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
+from django.http import JsonResponse
+from .models import Task, Module # Ensure your correct app imports are here
+
+@login_required
+def calendar_view(request):
+    # 1. Get current date parameters or grab navigation overrides from GET request
+    today = date.today()
+    year = int(request.GET.get('year', today.year))
+    month = int(request.GET.get('month', today.month))
+    
+    # Bound month limits safely
+    if month < 1:
+        month = 12
+        year -= 1
+    elif month > 12:
+        month = 1
+        year += 1
+
+    # 2. Extract calendar matrix layout using Python's native calendar engine
+    cal = calendar.Calendar(firstweekday=6)  # Start week on Sunday
+    month_days_matrix = cal.monthdayscalendar(year, month)
+    month_name = calendar.month_name[month]
+
+    # 3. Fetch ONLY incomplete tasks flagged explicitly for the calendar
+    tasks = Task.objects.filter(
+        user=request.user,
+        due_date__year=year,
+        due_date__month=month,
+        is_calendar_task=True,   # 💡 Keeps subject roadmap tasks off the calendar view
+        is_completed=False
+    ).select_related('module__subject')
+
+    # 4. Map multiple tasks into lists inside a dictionary keyed by day integer
+    tasks_by_day = defaultdict(list)
+    for task in tasks:
+        if task.due_date:
+            day_num = task.due_date.day
+            tasks_by_day[day_num].append(task)
+
+    # 5. Calculate previous/next month structural properties for link generation
+    prev_month = month - 1
+    prev_year = year
+    if prev_month < 1:
+        prev_month = 12
+        prev_year -= 1
+
+    next_month = month + 1
+    next_year = year
+    if next_month > 12:
+        next_month = 1
+        next_year += 1
+
+    # 6. Build the unified interface rendering context package
+    context = {
+        'month_days_matrix': month_days_matrix,
+        'month_name': month_name,
+        'year': year,
+        'month': month,
+        'tasks_by_day': dict(tasks_by_day),  # Convert to normal dict for Django template parsing
+        'prev_month': prev_month,
+        'prev_year': prev_year,
+        'next_month': next_month,
+        'next_year': next_year,
+        'current_day': today.day if today.year == year and today.month == month else 0,
+        'modules': Module.objects.filter(subject__user=request.user).select_related('subject')
+    }
+    
+    return render(request, 'calendar.html', context)
+
+
+{% comment %} @login_required
+@require_POST
+def add_calendar_task(request):
+    title = request.POST.get('title')
+    due_date = request.POST.get('due_date')
+    module_id = request.POST.get('module_id')
+    
+    module = None
+    if module_id:
+        module = get_object_or_404(Module, id=module_id, subject__user=request.user)
+        
+    # 💡 Create the task with the calendar isolation flag set to True
+    Task.objects.create(
+        user=request.user,
+        title=title,
+        due_date=due_date,
+        module=module,           # Link the module so the calendar sidebar knows the subject name
+        is_calendar_task=True,   # 🔑 CRITICAL: Prevents it from cluttering the subject blueprint cards
+        is_completed=False
+    )
+    return redirect('calendar')
+
+
+@login_required
+@require_POST
+def delete_calendar_task(request, task_id):
+    """Deletes a task ensuring the logged-in user owns it directly."""
+    task = get_object_or_404(Task, id=task_id, user=request.user)
+    task.delete()
+    return JsonResponse({'status': 'success', 'message': 'Task deleted successfully.'}) {% endcomment %}
+
+
+
+
+    subject = get_object_or_404(Subject, user_slug_id=user_slug_id, user=request.user)
+    
+    if request.method == "POST":
+        title = request.POST.get('title')
+        raw_doc_type = request.POST.get('doc_type')
+        uploaded_file = request.FILES.get('uploaded_file')
+        
+        if title and raw_doc_type and uploaded_file:
+            # Clean string input values to guarantee they match database filters
+            doc_type = raw_doc_type.strip().lower()
+            if "note" in doc_type:
+                doc_type = "notes"
+            elif "syllabus" in doc_type:
+                doc_type = "syllabus"
+
+            doc = SubjectDocument.objects.create(
+                subject=subject,
+                title=title,
+                doc_type=doc_type,
+                file=uploaded_file
+            )
+            
+            try:
+                # 1. Extract plain text content from the uploaded PDF stream
+                reader = PdfReader(doc.file.path)
+                extracted_text = ""
+                for page in reader.pages:
+                    text_content = page.extract_text()
+                    if text_content:
+                        extracted_text += text_content + "\n"
+                
+                print(f"\n--- DEBUG: Extracted {len(extracted_text)} characters from PDF ---")
+                
+                # 2. Fire up the Groq Pipeline if text exists
+                if extracted_text.strip():
+                    client = Groq(api_key=api)
+                    
+                    prompt_instructions = f"""
+                    You are an expert academic curriculum planner.
+
+                    Analyze the following syllabus/notes carefully.
+
+                    Document:
+                    ---------------------
+                    {extracted_text[:9000]}
+                    ---------------------
+
+                    Break the syllabus into logical learning modules.
+
+                    For each module provide:
+                    - module_title
+                    - description
+                    - 3 to 5 study tasks
+
+                    Return ONLY valid JSON.
+
+                    {{
+                        "modules":[
+                            {{
+                                "module_title":"Introduction",
+                                "description":"Basic concepts",
+                                "tasks":[
+                                    "Study topic 1",
+                                    "Study topic 2",
+                                    "Practice questions"
+                                ]
+                            }}
+                        ]
+                    }}
+                    """
+
+                    # 3. Request completion using an ACTIVE Groq model
+                    chat_completion = client.chat.completions.create(
+                        messages=[
+                            {
+                                "role": "user",
+                                "content": prompt_instructions,
+                            }
+                        ],
+                        model="llama-3.3-70b-versatile", 
+                        temperature=0.2,
+                        response_format={"type": "json_object"} 
+                    )
+                    
+                    response_text = chat_completion.choices[0].message.content
+                    print("="*60)
+                    print(response_text)
+                    print("="*60)
+                    
+                    if response_text:
+                        print("\n=== RAW GROQ RESPONSE ===")
+                        print(response_text)
+                        print("===========================\n")
+                        
+                        raw_json_data = json.loads(response_text)
+                        parsed_modules = []
+                        
+                        # ✨ ROBUST ARRAY EXTRACTION LOGIC
+                        if isinstance(raw_json_data, list):
+                            parsed_modules = raw_json_data
+                        elif isinstance(raw_json_data, dict):
+                            # Handle scenarios where Llama wraps the list inside an object key
+                            if "modules" in raw_json_data and isinstance(raw_json_data["modules"], list):
+                                parsed_modules = raw_json_data["modules"]
+                            else:
+                                # Fallback: Grab the first list element found anywhere inside the keys
+                                for val in raw_json_data.values():
+                                    if isinstance(val, list):
+                                        parsed_modules = val
+                                        break
+                        
+                        print(f"👉 Normalized Modules Found Count: {len(parsed_modules)}")
+                        
+                        # 4. Save parsed layout parameters to Database
+                        for idx, mod_data in enumerate(parsed_modules, start=1):
+
+                            module_obj = Module.objects.create(
+                                subject=subject,
+                                title=mod_data.get(
+                                    "module_title",
+                                    mod_data.get("title", f"Module {idx}")
+                                ),
+                                description=mod_data.get("description", ""),
+                                order=idx
+                            )
+
+                            print(f"\nCreated Module: {module_obj.title}")
+
+                            # Handle multiple possible AI response formats
+                            tasks = (
+                                mod_data.get("tasks")
+                                or mod_data.get("milestones")
+                                or mod_data.get("checklist")
+                                or mod_data.get("activities")
+                                or []
+                            )
+
+                            # Convert string -> list if AI returns a single string
+                            if isinstance(tasks, str):
+                                tasks = [tasks]
+
+                            print(f"Tasks found: {len(tasks)}")
+
+                            for task_title in tasks:
+
+                                task_title = str(task_title).strip()
+
+                                if not task_title:
+                                    continue
+
+                                Task.objects.create(
+                                    user=request.user,
+                                    module=module_obj,
+                                    title=task_title,
+                                    is_completed=False
+                                )
+
+                                print(f"  -> Created Task: {task_title}")
+                        
+                else:
+                    print("⚠️ PDF Text extraction resulted in an empty string. The file might be an image/scanned copy.")
+                        
+            except Exception as e:
+                import traceback
+
+                print("\n" + "="*80)
+                print("AI PIPELINE ERROR")
+                traceback.print_exc()
+                print("="*80 + "\n")
+                
+            return redirect('subject_detail', user_slug_id=user_slug_id)
+
+    # Gather data context collections to feed frontend layers
+    syllabi = subject.documents.filter(doc_type='syllabus') # type: ignore
+    notes = subject.documents.filter(doc_type='notes') # type: ignore
+    modules = subject.modules.all().order_by('order') # type: ignore
+
+    context = {
+        'subject': subject,
+        'syllabi': syllabi,
+        'notes': notes,
+        'modules': modules,
+    }
+    return render(request, 'subject_detail.html', context) {% endcomment %}

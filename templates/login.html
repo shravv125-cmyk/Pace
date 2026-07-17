@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log In - Pace</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Reusing the Soft-Tech Design Token System */
+        :root {
+            --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --white: #ffffff;
+            --card-border: rgba(226, 232, 240, 0.8);
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            --error-bg: #fef2f2;
+            --error-text: #b91c1c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 1.5rem;
+        }
+
+        /* Back to Landing navigation shortcut link */
+        .back-home {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .back-home:hover {
+            color: var(--primary);
+        }
+
+        /* Centered Login Card container */
+        .auth-card {
+            background: var(--white);
+            width: 100%;
+            max-width: 420px;
+            padding: 2.5rem 2rem;
+            border-radius: 16px;
+            border: 1px solid var(--card-border);
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 1.8rem;
+        }
+
+        .auth-header {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .brand-logo {
+            font-size: 1.75rem;
+            font-weight: 700;
+            letter-spacing: -0.05em;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+        }
+
+        .brand-logo span {
+            color: var(--primary);
+        }
+
+        .auth-header h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .auth-header p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        /* Native Django Form Error Notification styling */
+        .error-banner {
+            background-color: var(--error-bg);
+            color: var(--error-text);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            border: 1px solid rgba(185, 28, 28, 0.1);
+        }
+
+        /* Form Input Field Layouts */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-main);
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            color: var(--text-main);
+            background-color: #f8fafc;
+            transition: all 0.2s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background-color: var(--white);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        /* Submit Button Action rules */
+        .btn-submit {
+            width: 100%;
+            background-color: var(--primary);
+            color: var(--white);
+            border: none;
+            padding: 0.8rem;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+            transition: all 0.2s ease;
+            margin-top: 0.5rem;
+        }
+
+        .btn-submit:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(79, 70, 229, 0.25);
+        }
+
+        /* Context switching links text styling */
+        .auth-footer {
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .auth-footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .auth-footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <a href="{% url 'landing' %}" class="back-home">← Back to home</a>
+
+    <div class="auth-card">
+        
+        <div class="auth-header">
+            <div class="brand-logo"><span>●</span> Pace</div>
+            <h2>Welcome back</h2>
+            <p>Pick up right where you left off</p>
+        </div>
+
+        {% if error %}
+        <div class="error-banner">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="POST" action="{% url 'login' %}">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="email" id="username" name="email" placeholder="Enter your Email" required autocomplete="email">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="••••••••" required autocomplete="current-password">
+            </div>
+
+            <button type="submit" class="btn-submit">Log In</button>
+        </form>
+
+        <div class="auth-footer">
+            Don't have an account? <a href="{% url 'register' %}">Create one now</a>
+        </div>
+
+    </div>
+
+</body>
+</html>

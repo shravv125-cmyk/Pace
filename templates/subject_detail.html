@@ -1,0 +1,163 @@
+{% extends 'base_dashboard.html' %}
+
+{% block title %}{{ subject.name }} - Details{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+    <a href="{% url 'subject_detail' subject.user_slug_id %}" style="text-decoration: none; color: var(--primary); font-size: 0.9rem; font-weight: 600;">← Back to Subjects</a>
+    <h1 style="font-size: 1.8rem; font-weight: 700; margin-top: 0.5rem; margin-bottom: 0.25rem;">{{ subject.name }}</h1>
+    <p style="font-size: 0.9rem; color: var(--text-muted);">Upload and manage course documentation for your pipeline storage.</p>
+</div>
+
+<div class="dashboard-card" style="margin-bottom: 2rem;">
+    <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 1rem;">Upload PDF Document</h3>
+    <form method="POST" action="{% url 'subject_detail' subject.user_slug_id %}" enctype="multipart/form-data" style="display: grid; grid-template-columns: 2fr 1fr auto; gap: 1rem; align-items: end;">
+        {% csrf_token %}
+        <input type="hidden" name="doc_type" value="notes">
+        
+        <div>
+            <label style="display:block; font-size:0.8rem; margin-bottom:0.3rem; color:var(--text-muted);">Document Title</label>
+            <input type="text" name="title" placeholder="e.g., Module 1 Basics, Lecture Note Core v1" required 
+                   style="width:100%; padding: 0.65rem; border: 1px solid var(--border); border-radius: 8px; outline: none; background: var(--bg-main); box-sizing: border-box;">
+        </div>
+        <div>
+            <label style="display:block; font-size:0.8rem; margin-bottom:0.3rem; color:var(--text-muted);">Select PDF</label>
+            <input type="file" name="uploaded_file" accept=".pdf" required style="font-size: 0.85rem;">
+        </div>
+        <button type="submit" style="background-color: var(--primary); color: var(--white); border: none; padding: 0.65rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; height: 38px;">
+            Upload
+        </button>
+    </form>
+</div>
+
+<div class="dashboard-card" style="margin-bottom: 2rem;">
+    <h3 class="card-title" style="border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">📚 Uploaded Study Notes & Files</h3>
+    <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem;">
+        {% for doc in notes %}
+            <div style="display:flex; justify-content:space-between; align-items:center; padding: 0.75rem 1rem; background: var(--bg-main); border-radius:8px; border: 1px solid var(--border);">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="font-size: 1.1rem;">📝</span>
+                    <span style="font-size:0.9rem; font-weight:500; color: var(--text-main);">{{ doc.title }}</span>
+                </div>
+                <a href="{{ doc.file.url }}" target="_blank" style="font-size:0.85rem; color: var(--primary); font-weight:600; text-decoration:none; background-color: var(--primary-light); padding: 0.35rem 0.85rem; border-radius: 6px;">Open PDF</a>
+            </div>
+        {% empty %}
+            <p style="font-size:0.85rem; color: var(--text-muted); text-align: center; padding: 1rem 0;">No study notes uploaded yet. Drop a PDF document blueprint above to begin parsing modules!</p>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="dashboard-card" style="margin-top: 2rem;">
+    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem;">
+        <span style="font-size: 1.3rem;">✨</span>
+        <h3 style="font-size: 1.1rem; font-weight: 600;">AI Structured Learning Blueprint</h3>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        {% for module in modules %}
+            <div class="module-card" style="border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; background-color: rgba(146, 67, 223, 0.01);">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                    <div>
+                        <span style="font-size: 0.75rem; color: var(--primary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">MODULE 0{{ module.order }}</span>
+                        <h4 style="font-size: 1.1rem; font-weight: 600; color: var(--text-main); margin-top: 0.1rem;">{{ module.title }}</h4>
+                    </div>
+                    <span class="progress-badge" style="background-color: var(--primary-light); color: var(--primary); font-size: 0.75rem; font-weight: 600; padding: 0.25rem 0.6rem; border-radius: 20px; transition: all 0.3s ease;">0% Complete</span>
+                </div>
+                
+                {% if module.description %}
+                    <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.4;">{{ module.description }}</p>
+                {% endif %}
+
+                <div style="display: flex; flex-direction: column; gap: 0.65rem; background: var(--white); padding: 1rem; border-radius: 8px; border: 1px solid var(--border);">
+                    <h5 style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.03em; margin-bottom: 0.25rem;">Execution Milestones</h5>
+                    {% for task in module.tasks.all %}
+                        <div style="display: flex; align-items: center; gap: 0.75rem; font-size: 0.9rem;">
+                            <input type="checkbox" 
+                                   class="task-checkbox" 
+                                   data-task-id="{{ task.id }}"
+                                   {% if task.is_completed %}checked{% endif %} 
+                                   style="accent-color: var(--primary); width: 15px; height: 15px; cursor: pointer;">
+                            <span class="task-title-text" style="{% if task.is_completed %}text-decoration: line-through; color: var(--text-muted);{% endif %}">{{ task.title }}</span>
+                        </div>
+                    {% empty %}
+                        <p style="font-size: 0.8rem; color: var(--text-muted);">No granular checklist items matched to this section sequence block.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        {% empty %}
+            <div style="text-align: center; padding: 2.5rem; color: var(--text-muted);">
+                <p style="font-size: 0.95rem; font-weight: 500; margin-bottom: 0.25rem;">No modules parsed into context grid yet.</p>
+                <p style="font-size: 0.82rem;">Upload a note document PDF above, and the AI agent core will slice out clear learning blocks automatically!</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        function updateModuleProgress(moduleCard) {
+            const checkboxes = moduleCard.querySelectorAll(".task-checkbox");
+            const badge = moduleCard.querySelector(".progress-badge");
+            
+            if (!checkboxes.length || !badge) return;
+
+            const totalTasks = checkboxes.length;
+            const completedTasks = Array.from(checkboxes).filter(cb => cb.checked).length;
+            const percentage = Math.round((completedTasks / totalTasks) * 100);
+            
+            badge.textContent = `${percentage}% Complete`;
+
+            if (percentage === 100) {
+                badge.style.backgroundColor = "#dcfce7";
+                badge.style.color = "#15803d";
+            } else {
+                badge.style.backgroundColor = "var(--primary-light)";
+                badge.style.color = "var(--primary)";
+            }
+        }
+
+        document.querySelectorAll(".module-card").forEach(updateModuleProgress);
+
+        document.querySelectorAll(".task-checkbox").forEach(checkbox => {
+            checkbox.addEventListener("change", function () {
+                const moduleCard = this.closest(".module-card");
+                const taskTitle = this.nextElementSibling;
+                const taskId = this.getAttribute("data-task-id");
+                const isChecked = this.checked;
+
+                if (isChecked) {
+                    taskTitle.style.textDecoration = "line-through";
+                    taskTitle.style.color = "var(--text-muted)";
+                } else {
+                    taskTitle.style.textDecoration = "none";
+                    taskTitle.style.color = "var(--text-main)";
+                }
+
+                if (moduleCard) {
+                    updateModuleProgress(moduleCard);
+                }
+
+                fetch(`/task/toggle/${taskId}/`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": "{{ csrf_token }}"
+                    },
+                    body: JSON.stringify({
+                        is_completed: isChecked
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status !== 'success') {
+                        console.error("Database persistence error:", data.message);
+                    }
+                })
+                .catch(err => {
+                    console.error("Network communication error:", err);
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}

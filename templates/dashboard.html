@@ -1,0 +1,122 @@
+{% extends 'base_dashboard.html' %}
+
+{% block title %} Dashboard - Pace AI {% endblock %}
+
+{% block content %}
+<div style="background-color: #f8fafc; min-height: 100vh; padding: 2.5rem 2rem; color: #1e293b; font-family: system-ui, -apple-system, sans-serif;">
+    
+    <!-- 🌟 Clean Personalized Welcome Section Banner -->
+    <div style="margin-bottom: 2.5rem;">
+        <h1 style="font-family: Georgia, serif; font-size: 2.5rem; font-weight: 700; color: #0f172a; margin: 0;">{{ greeting }}, {{ first_name }}</h1>
+        <p style="color: #64748b; font-size: 1rem; margin-top: 0.5rem; margin-bottom: 0; max-width: 600px;">
+            Your plan recalculates itself when a topic needs more time &mdash; nothing static, nothing to manually redo.
+        </p>
+    </div>
+
+    <!-- 📄 Syllabus Parsing Status Indicator Card Summary -->
+    <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+        <h3 style="font-size: 1.25rem; font-family: Georgia, serif; font-weight: 700; margin: 0 0 0.4rem 0; color: #0f172a;">{{ subject_info.name }}</h3>
+        <p style="color: #64748b; font-size: 0.88rem; margin: 0 0 1rem 0;">
+            Parsed from <span style="font-family: monospace; background-color: #f1f5f9; padding: 0.15rem 0.3rem; border-radius: 4px; color: #334155;">{{ subject_info.parsed_file }}</span> &middot; {{ subject_info.modules_count }} modules detected &middot; {{ subject_info.estimated_hours }} estimated study hours
+        </p>
+        <span style="background-color: #e6f4ea; color: #137333; font-size: 0.78rem; font-weight: 600; padding: 0.35rem 0.75rem; border-radius: 20px; display: inline-flex; align-items: center; gap: 0.3rem;">
+            ✓ Plan generated
+        </span>
+    </div>
+
+    <!-- 📊 Stat Tracker Row Grid Panel Cards -->
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; margin-bottom: 2rem;">
+        
+        <!-- Metric Card 1: Days Allocation info -->
+        <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.25rem; box-shadow: 0 1px 2px rgba(0,0,0,0.01);">
+            <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; margin-bottom: 0.5rem;">Days Into Plan</div>
+            <div style="font-size: 1.8rem; font-family: Georgia, serif; font-weight: 700; color: #0f172a; margin-bottom: 0.25rem;">14 <span style="font-size: 1.2rem; color: #94a3b8; font-family: system-ui;">/ 60</span></div>
+            <div style="font-size: 0.82rem; color: #16a34a; font-weight: 600;">On pace</div>
+        </div>
+
+        <!-- Metric Card 2: Module Targets completed updates -->
+        <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.25rem; box-shadow: 0 1px 2px rgba(0,0,0,0.01);">
+            <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; margin-bottom: 0.5rem;">Modules Complete</div>
+            <div style="font-size: 1.8rem; font-family: Georgia, serif; font-weight: 700; color: #0f172a; margin-bottom: 0.25rem;">{{ completed_modules }} <span style="font-size: 1.2rem; color: #94a3b8; font-family: system-ui;">/ {{ total_modules }}</span></div>
+            <div style="font-size: 0.82rem; color: #16a34a; font-weight: 600;">+1 this week</div>
+        </div>
+
+        <!-- Metric Card 3: Hour tracking aggregates -->
+        <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.25rem; box-shadow: 0 1px 2px rgba(0,0,0,0.01);">
+            <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; margin-bottom: 0.5rem;">Hours Studied</div>
+            <div style="font-size: 1.8rem; font-family: Georgia, serif; font-weight: 700; color: #0f172a; margin-bottom: 0.25rem;">{{ hours_studied }}h</div>
+            <div style="font-size: 0.82rem; color: #64748b; font-weight: 500;">of {{ subject_info.estimated_hours }}h total</div>
+        </div>
+
+        <!-- Metric Card 4: Flagged Troubles item counts -->
+        <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.25rem; box-shadow: 0 1px 2px rgba(0,0,0,0.01);">
+            <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; margin-bottom: 0.5rem;">Topics Under Review</div>
+            <div style="font-size: 1.8rem; font-family: Georgia, serif; font-weight: 700; color: #dc2626; margin-bottom: 0.25rem;">{{ flagged_count }}</div>
+            <div style="font-size: 0.82rem; color: #b45309; font-weight: 600;">Action needed</div>
+        </div>
+    </div>
+
+    <!-- 🗓 Two-Column Lower Content Split Dashboard Grid -->
+    <div style="display: grid; grid-template-columns: 2.4fr 1fr; gap: 1.5rem; align-items: start;">
+        
+        <!-- Left Wing: Light Mode Weekly Stream Strip Strip Card -->
+        <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+                <div>
+                    <h2 style="font-size: 1.3rem; font-family: Georgia, serif; font-weight: 700; color: #0f172a; margin: 0;">This week</h2>
+                    <p style="font-size: 0.82rem; color: #64748b; margin-top: 0.25rem; margin-bottom: 0;">Tap "Struggled" on a task inside subject view to trigger a plan reshuffle</p>
+                </div>
+                
+                <div style="display: flex; gap: 1rem; font-size: 0.78rem; font-weight: 600;">
+                    <div style="display: flex; align-items: center; gap: 0.3rem; color: #475569;">
+                        <span style="width: 8px; height: 8px; background-color: #3b82f6; border-radius: 50%;"></span> Scheduled
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.3rem; color: #475569;">
+                        <span style="width: 8px; height: 8px; background-color: #10b981; border-radius: 50%;"></span> Done
+                    </div>
+                </div>
+            </div>
+
+            <!-- Horizontal Days Mapping Card Strip -->
+            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.65rem;">
+                {% for day in week_days %}
+                    <div style="background-color: #f8fafc; border: {% if day.is_today %}2px solid #2563eb{% else %}1px solid #e2e8f0{% endif %}; border-radius: 10px; padding: 0.85rem 0.5rem; text-align: left;">
+                        <span style="display: block; font-size: 0.68rem; color: #64748b; font-weight: 700; letter-spacing: 0.04em;">{{ day.day_name }}</span>
+                        <span style="display: block; font-size: 1.05rem; font-weight: 700; margin-top: 0.2rem; color: #0f172a;">{{ day.day_number }}</span>
+                        
+                        <div style="margin-top: 0.75rem; padding: 0.35rem 0.25rem; border-radius: 6px; font-size: 0.72rem; font-weight: 700; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+                            {% if day.status == 'done' %}
+                                background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0;
+                            {% elif day.status == 'scheduled' %}
+                                background-color: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;
+                            {% else %}
+                                background-color: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0;
+                            {% endif %}">
+                            {{ day.label }}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Right Wing: Minimal Circular Progress Panel Card Component -->
+        <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02); text-align: center;">
+            <h3 style="font-size: 1.15rem; font-family: Georgia, serif; font-weight: 700; color: #0f172a; margin: 0 0 0.25rem 0; text-align: left;">Overall progress</h3>
+            <p style="color: #64748b; font-size: 0.82rem; margin: 0 0 1.5rem 0; text-align: left;">{{ subject_info.name }}</p>
+            
+            <!-- Simple clean flex ring block meter rendering progress context -->
+            <div style="position: relative; width: 100px; height: 100px; margin: 0 auto 1rem auto; display: flex; align-items: center; justify-content: center;">
+                <svg width="100" height="100" viewBox="0 0 36 36" style="transform: rotate(-90deg); width: 100%; height: 100%;">
+                    <path stroke="#f1f5f9" stroke-width="3" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                    <path stroke="#2563eb" stroke-width="3" stroke-dasharray="{{ overall_progress_pct }}, 100" stroke-linecap="round" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                </svg>
+                <div style="position: absolute; font-size: 1.3rem; font-weight: 800; color: #0f172a;">
+                    {{ overall_progress_pct }}%
+                </div>
+            </div>
+            <p style="font-size: 0.8rem; color: #64748b; font-weight: 500; margin: 0;">Total aggregate module curriculum track completed.</p>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

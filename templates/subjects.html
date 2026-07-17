@@ -1,0 +1,58 @@
+{% extends 'base_dashboard.html' %}
+
+{% block title %}Courses - Pace AI{% endblock %}
+
+{% block content %}
+<div class="welcome-section" style="margin-bottom: 2rem;">
+    <h1 style="font-size: 1.6rem; font-weight: 700; margin-bottom: 0.25rem;">Academic Subjects</h1>
+    <p style="font-size: 0.9rem; color: var(--text-muted);">Manage your registered courses and syllabus tracking documentation.</p>
+</div>
+
+<div class="dashboard-card" style="margin-bottom: 2rem;">
+    <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 1rem;">Add New Course</h3>
+    <form method="POST" style="display: flex; gap: 1rem;">
+        {% csrf_token %} 
+        <input type="text" name="subject_name" placeholder="e.g., Database Management Systems, Operating Systems" required 
+               style="flex: 1; padding: 0.65rem 1rem; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 0.9rem; outline: none; background-color: var(--bg-main);">
+        <button type="submit" style="background-color: var(--primary); color: var(--white); border: none; padding: 0.65rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer;">
+            Add Subject
+        </button>
+    </form>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">
+    {% for subject in subjects %}
+        <a href="{% url 'subject_detail' subject.user_slug_id %}" style="text-decoration: none; color: inherit; display: block;">
+            <div class="dashboard-card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 140px; transition: transform 0.2s, box-shadow 0.2s;" 
+                 onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='var(--shadow-md)';" 
+                 onmouseout="this.style.transform='none'; this.style.boxShadow='var(--shadow-sm)';">
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span style="font-size: 1.5rem;">📚</span>
+                            <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; background-color: var(--bg-main); padding: 0.2rem 0.5rem; border-radius: 6px; border: 1px solid var(--border);">
+                                Course #0{{ forloop.counter }}
+                            </span>
+                        </div>
+                        <span style="background-color: #f3e8ff; color: #6b21a8; font-size: 0.75rem; font-weight: 600; padding: 0.25rem 0.6rem; border-radius: 12px;">View Files →</span>
+                    </div>
+                    <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem;">{{ subject.name }}</h3>
+                    <p style="font-size: 0.8rem; color: var(--text-muted);">Logged on {{ subject.created_at|date:"M d, Y" }}</p>
+                </div>
+            </div>
+        </a>
+    {% empty %}
+        <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--text-muted); border: 2px dashed var(--border); border-radius: 12px;">
+            <p style="font-size: 0.95rem; font-weight: 500; margin-bottom: 0.25rem;">No academic subjects registered yet.</p>
+            <p style="font-size: 0.82rem;">Type a course title parameter above to instantiate your smart tracking dashboard spaces!</p>
+        </div>
+        <p>
+PK = {{ subject.pk }} |
+Slug = {{ subject.user_slug_id }} |
+<a href="{% url 'subject_detail' subject.user_slug_id %}">
+    Open
+</a>
+</p>
+    {% endfor %}
+</div>
+{% endblock %}
